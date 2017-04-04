@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>D3 Animation</title>
+
+<style>
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+
+    .rectangle text {
+            font-family: Helvetica;
+            font-size: 12px;
+        }
+</style>
+</head>
+<body>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+
+     var margin={top: 20, right: 20, bottom: 30, left: 40},
+         width=960 - margin.left - margin.right,
+         height=960 - margin.top - margin.bottom;
+
+     var y = d3.scale.linear()
+           .range([height, 0]);
+
+     var yAxis = d3.svg.axis()
+               .scale(y)
+               .orient("left")
+
+     var svg=d3.select("body").append("svg")
+            .attr("width", width+margin.left+margin.right)
+            .attr("height", height+margin.top+margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+     d3.csv("fruit.csv", function(error, data){
+        if (error) throw error;
+
+        y.domain([0, d3.max(data, function(d){return +d.Count})+10]);
+
+        y_axis=svg.append("g")
+           .attr("class", "y axis")
+           .call(yAxis)
+           .append("text")
+           .attr("transform", "rotate(-90)")
+           .attr("y", 24)
+           .attr("dy", ".31em")
+           .attr("text-anchor", "end")
+           .text("Count")
+
+        barChart(data, svg);
+
+        barToBubble();
+
+        bubbleToPack();
+
+     })
+
+
+     function barChart(data, svg){
+            var colorFamily=svg.selectAll(".rectangle")
+                     .data(data)
+                     .enter().append("g")
+                     .attr("class", "rectangle")
+                     .attr("id", function(d){return d.Fruit});
+
+            colorFamily.append("rect")
+                       .attr("width", width/data.length-20)
+                       .attr("x", function(d, i){return i*(width-70)/data.length+40})
+                       .attr("y", function(d){return y(d.Count)})
+                       .attr("height", 0)
+                       .style("fill", function(d){return d.Color})
+                       .transition().duration(2000)
+                       .attr("height", function(d){return height - y(d.Count)});
+
+            colorFamily.append("text")
+                   .attr("x", function(d, i){return i*(width-50)/data.length+50})
+                   .attr("y", function(d){return y(d.Count)+10})
+                   .text(function(d){return d.Fruit})
+                   .style("text-anchor", "middle")
+                   .transition().duration(2000)
+                   //.attr("transform", function(d, i) {x_origin = i*width/data.length, y_origin=y(d.Count)+10; return "rotate(-45,"+x_origin+"," +y_origin+")"})
+                   .attr("y", y(-1));
+        }
+
+
+
+
+        function barToBubble(){
+            d3.select(".y.axis")
+              .transition()
+              .delay(2500)
+              .duration(1500)
+              .remove();
+
+            var colorFamily=svg.selectAll(".rectangle");
+
+            colorFamily.selectAll("rect").transition().delay(2000).duration(2000)
+                       .attr("height", function(d){return +d.Count*3})
+                       .attr("width", function(d) {return +d.Count*3})
+                       .attr("rx", function(d) {return +d.Count*3})
+                       .attr("ry", function(d) {return +d.Count*3});
+
+            colorFamily.selectAll("text").transition().delay(2000).duration(2000)
+                       //.attr("x", function(d) {return parseInt(d.Count)})
+                       .attr("y", function(d) {return y(d.Count)-5});
+        }
+
+
+
+
+        function bubbleToPack(){
+            // add clusters
+            var redCluster=["Orange", "Apple", "Peach", "Cherry", "Date"],
+                greenCluster=["Lime", "Kiwi", "Watermelon"],
+                purpleCluster=["Blueberry", "Grape"],
+                yellowCluster=["Mango", "Banana", "Lemon", "Pineapple", "Pear"]
+                clusters=[redCluster, greenCluster, purpleCluster, yellowCluster];
+
+            // add cluster centers
+            var clusterCenter=[{x: width/10, y: height/5, "color":"red"},
+                               {x: 2*width/5, y: 2*height/5, "color":"green"},
+                               {x: 3*width/5, y: height/5, "color":"purple"},
+                               {x: 3*width/5, y: 3*height/5, "color":"yellow"}]
+
+            clusters.forEach(function(cluster, index){
+                var distBetween=70;
+
+                cluster.forEach(function(fruit, i){
+                       svg.select("#"+fruit)
+                          .transition().delay(4000).duration(1000)
+                          // move bundled rect element and text element into clusters
+                          .attr("transform", function(){x_position=i*distBetween+clusterCenter[index].x-parseInt(d3.select(this).select("rect").attr("x")),
+                                                        y_position=clusterCenter[index].y-parseInt(d3.select(this).select("rect").attr("y"));
+                                                        return "translate("+x_position+","+y_position+")"})
+                });
+            })
+
+            colorCluster=svg.selectAll(".cluster")
+                                 .data(clusterCenter)
+                                 .enter().append("g")
+                                 .attr("class", "cluster");
+
+            //add rectangles to represent clusters
+            colorCluster.append("rect")
+                    .style("fill-opacity", 0)
+                    .transition().delay(5000).duration(1000)
+                    .attr("width", function(d, i){clusterLength=clusters[i].length; return 75*clusterLength})
+                    .attr("x", function(d){return +d.x-10})
+                    .attr("y", function(d){return +d.y-25})
+                    .attr("height", 100)
+                    .style("fill", function(d){return d.color})
+                    .style("fill-opacity", 0.2);
+
+            // add text
+            colorCluster.append("text")
+                       .transition().delay(5000).duration(1000)
+                       .attr("x", function(d){return +d.x+20})
+                       .attr("y", function(d){return +d.y-30})
+                       .style("fill", function(d){return d.color})
+                       .text(function(d, i){var clusterName=["Red Family", "Green Family",
+                                                             "Purple Family", "Yellow Family"];
+                                                             return clusterName[i]});
+        }
+
+</script>
+
+</body>
+</html>
