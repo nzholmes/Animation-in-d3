@@ -1,4 +1,4 @@
-# Assignment 3 - Animated Transitions
+# Animated Transitions
 
 Project link: ["Bar chart to Bubble chart to Pack chart"](http://nzholmes.github.io/03-Animation/index.html).
 
@@ -8,10 +8,10 @@ Project link: ["Bar chart to Bubble chart to Pack chart"](http://nzholmes.github
 
 # Description of three-stage transitions
  - The first stage is bar chart. I added transition to generate bars with height from zero to particular fruit count. 
- ![Bar chart](/Bar chart.png)
+ ![Bar chart](Bar-chart.png)
  
  - The second stage is bubble chart. To smoothly transition from bar chart, I took advantage of "rx" and "ry" to reduce rectangles to ellipses and finally to circles when "rx"="ry", with radius three times the count.
- ![Bubble chart](Bubble chart.png)
+ ![Bubble chart](Bubble-chart.png)
  
  - The third stage is packs chart, i.e cluster fruit with similar colors into four color families. I created four cluster arrays and four cluster center arrays, respectively containing cluster elements and cluster centers. Then I moved fruit to four rectangles that represents corresponding color cluster.
  ![Pack](Pack.png)
